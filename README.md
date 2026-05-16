@@ -49,19 +49,31 @@ target StargateProject installation.
 During installation, the script asks which web UI/background mode to use:
 
 1. `Kristian-background` - for a clean Kristian image
-<img width="865" height="958" alt="Arrière-plan de Kristian" src="https://github.com/user-attachments/assets/7a7d8ee9-4e62-46b1-9185-18bd70fe749f" />
+<img width="865" height="958" alt="Kristian background" src="https://github.com/user-attachments/assets/7a7d8ee9-4e62-46b1-9185-18bd70fe749f" />
 
 2. `PolkaDot-background` - for the PolkaDot retro UI
-<img width="865" height="946" alt="Arrière-plan de Polkadot" src="https://github.com/user-attachments/assets/b818161b-fbb5-482d-8009-44df18bf418c" />
+<img width="865" height="946" alt="PolkaDot background" src="https://github.com/user-attachments/assets/b818161b-fbb5-482d-8009-44df18bf418c" />
 
 3. `Custom` - for a custom background image
-<img width="863" height="940" alt="Arrière-plan personnalisé" src="https://github.com/user-attachments/assets/b28b3b25-383e-4afe-9c15-feb8b08f3bf6" />
+<img width="863" height="940" alt="Custom background" src="https://github.com/user-attachments/assets/b28b3b25-383e-4afe-9c15-feb8b08f3bf6" />
 
 
 
 ## Installation
 
-Copy or clone this repository to the Raspberry Pi, then run:
+### Option 1: Copy only `install.sh`
+
+`install.sh` is self-contained. It includes an embedded copy of `AlarmClock.zip`,
+so it can install the add-on even when no ZIP file is placed next to it.
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+### Option 2: Clone the full repository
+
+You can also copy or clone the full repository to the Raspberry Pi, then run:
 
 ```bash
 sudo systemctl stop stargate.service
@@ -69,6 +81,10 @@ cd /home/pi/Alarm-Clock
 chmod +x install.sh restore.sh
 ./install.sh
 ```
+
+When `AlarmClock.zip` exists next to `install.sh`, the installer uses that file.
+When it does not exist, the installer automatically extracts the embedded ZIP
+payload from `install.sh`.
 
 The installer expects the StargateProject folder at:
 
