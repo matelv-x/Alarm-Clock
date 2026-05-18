@@ -77,9 +77,12 @@ You can also copy or clone the full repository to the Raspberry Pi, then run:
 
 ```bash
 sudo systemctl stop stargate.service
-cd /home/pi/Alarm-Clock
+cd /home/pi
+unzip Alarm-Clock-main.zip
+cd Alarm-Clock-main
 chmod +x install.sh restore.sh
-./install.sh
+sudo ./install.sh
+sudo systemctl restart stargate.service
 ```
 
 When `AlarmClock.zip` exists next to `install.sh`, the installer uses that file.
