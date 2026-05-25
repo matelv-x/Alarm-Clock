@@ -1,42 +1,42 @@
-# Alarm Clock
+# Stargate Alarm Clock Add-on
 
-Adds a browser alarm clock page, backend API and alarm WAV playback support.
+Installable Alarm Clock add-on for StargateProject SG1 v4.
 
 This repository is private while it is being checked and verified.
 
 ## Install
 
+Clone or unzip this add-on into `/home/pi`, then run:
+
 ```bash
-cd /home/pi/Stargate-Final_Patches
+cd /home/pi
 rm -rf Alarm-Clock
 git clone https://github.com/matelv-x/Alarm-Clock.git
 cd Alarm-Clock
-chmod +x *.sh
-sudo ./install.sh /home/pi/sg1_v4
+chmod +x install.sh restore.sh
+sudo systemctl stop stargate.service
+sudo ./install.sh
 sudo systemctl restart stargate.service
 ```
 
 ## Restore / uninstall
 
 ```bash
-cd /home/pi/Stargate-Final_Patches/Alarm-Clock
-chmod +x restore.sh
-sudo ./restore.sh /home/pi/sg1_v4
+cd /home/pi/Alarm-Clock
+sudo ./restore.sh
 sudo systemctl restart stargate.service
 ```
 
 ## What it changes
 
-- Adds web/alarm_clock.htm and web/js/alarm_clock.js.
-- Adds alarm manager classes, alarm config and alarm sound assets.
-- Adds backend actions used by the browser alarm controls.
+- Adds web alarm-clock UI.
+- Adds alarm backend/files and sample alarm sounds.
+- Installer asks which background/UI mode to use.
 
 ## Attribution and originality
 
 Original base project: StargateProject SG1 software from the BuildAStargate/Jordan/Kristian/Jonnerd project lineage.
 
-Additional source/idea credit: Feature idea by Marcin/Codex, built on Jordan/Kristian/Jonnerd StargateProject SG1 runtime and web UI.
+Additional source/idea credit: Feature idea by Marcin/Codex over Jordan/Jonnerd StargateProject SG1 v4.
 
-How much is copied or changed: Medium patch. Some modified SG1 Python/web files are included as patch context, plus new alarm classes and sound assets.
-
-The included `*.patch` file, when present, shows the exact text-level changes against the base software used while packaging.
+How much is copied or changed: Large add-on package with embedded ZIP payload and selected modified files.
