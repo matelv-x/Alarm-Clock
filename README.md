@@ -37,6 +37,6 @@ sudo systemctl restart stargate.service
 
 Original base project: StargateProject SG1 software from the BuildAStargate/Jordan/Kristian/Jonnerd project lineage.
 
-Additional source/idea credit: Feature idea by Marcin/Codex over Jordan/Jonnerd StargateProject SG1 v4.
+Additional source/idea credit: Feature idea by matelv-x/Codex over Jordan/Jonnerd StargateProject SG1 v4.
 
 How much is copied or changed: Large add-on package with embedded ZIP payload and selected modified files.
