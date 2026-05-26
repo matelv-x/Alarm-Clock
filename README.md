@@ -32,6 +32,25 @@ sudo systemctl restart stargate.service
 - Adds web alarm-clock UI.
 - Adds alarm backend/files and sample alarm sounds.
 - Installer asks which background/UI mode to use.
+- Shows Raspberry Pi system time/timezone in the Alarm Clock UI.
+- Uses Raspberry Pi local system time for scheduled alarm triggers.
+
+## Timezone note
+
+Scheduled alarms run from the Raspberry Pi system clock, not from the browser clock. If an alarm triggers at the wrong time, check the Pi timezone first:
+
+```bash
+timedatectl
+date
+```
+
+Set the correct timezone if needed, for example:
+
+```bash
+sudo timedatectl set-timezone Europe/London
+sudo timedatectl set-ntp true
+sudo systemctl restart stargate.service
+```
 
 ## Attribution and originality
 
