@@ -1,5 +1,7 @@
 # Stargate Alarm Clock Add-on
 
+[![Downloads](https://img.shields.io/github/downloads/matelv-x/Alarm-Clock/total?label=downloads)](https://github.com/matelv-x/Alarm-Clock/releases)
+
 Installable Alarm Clock add-on for StargateProject SG1 v4.
 
 This repository is private while it is being checked and verified.
