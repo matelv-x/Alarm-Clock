@@ -1,5 +1,12 @@
 # Stargate Alarm Clock Add-on
 
+## Stellar Archive maintenance
+
+This repository includes maintenance contract v1. Updates can run without an
+automatic service restart. Uninstall is surgical: it restores/removes only
+Alarm Clock-owned files and removes its exact integration blocks, preserving
+other add-ons installed later.
+
 [![Downloads](https://img.shields.io/github/downloads/matelv-x/Alarm-Clock/total?label=downloads)](https://github.com/matelv-x/Alarm-Clock/releases)
 
 Installable Alarm Clock add-on for StargateProject SG1 v4.
