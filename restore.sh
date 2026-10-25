@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TARGET="/home/pi/sg1_v4"
+TARGET="${APP_DIR:-/home/pi/sg1_v4}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATE_FILE="$SCRIPT_DIR/.last_backup_path"
 
@@ -17,9 +17,15 @@ fi
 [ -d "$BACKUP" ] || fail "Backup folder does not exist: $BACKUP"
 
 echo "Restoring from: $BACKUP"
-sudo systemctl stop stargate.service || true
+if [ "${STARGATE_ADDON_NO_RESTART:-0}" != "1" ]; then
+  sudo systemctl stop stargate.service || true
+fi
 rm -rf "$TARGET"
 cp -a "$BACKUP" "$TARGET"
-sudo systemctl start stargate.service
+if [ "${STARGATE_ADDON_NO_RESTART:-0}" != "1" ]; then
+  sudo systemctl start stargate.service
+else
+  echo "Stargate restart deferred by add-on manager."
+fi
 
 echo "=== RESTORE COMPLETE ==="

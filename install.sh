@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TARGET="/home/pi/sg1_v4"
+TARGET="${APP_DIR:-/home/pi/sg1_v4}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATE_FILE="$SCRIPT_DIR/.last_backup_path"
 STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -10,6 +10,7 @@ WORK_DIR="$SCRIPT_DIR/.alarmclock_work"
 ZIP_SRC=""
 SRC=""
 SERVICE_STOPPED=0
+MODE="${ALARM_CLOCK_MODE:-}"
 log() { echo; echo "=== $1 ==="; }
 fail() { echo "ERROR: $1" >&2; exit 1; }
 warn() { echo "WARNING: $1"; }
@@ -83,6 +84,12 @@ extract_zip() {
 
 choose_mode() {
   echo "Using ZIP: $ZIP_SRC"
+  if [ -n "$MODE" ]; then
+    case "$MODE" in
+      1|2|3|keep) return ;;
+      *) fail "ALARM_CLOCK_MODE must be 1, 2, 3 or keep" ;;
+    esac
+  fi
   echo "Choose background mode:"
   echo "1) Kristian-background"
   echo "2) PolkaDot-background"
@@ -103,12 +110,19 @@ backup_target() {
 }
 
 stop_service() {
+  if [ "${STARGATE_ADDON_NO_RESTART:-0}" = "1" ]; then
+    echo "Stargate restart deferred by add-on manager."
+    return
+  fi
   log "Stopping Stargate service"
   sudo systemctl stop stargate.service || true
   SERVICE_STOPPED=1
 }
 
 start_service() {
+  if [ "${STARGATE_ADDON_NO_RESTART:-0}" = "1" ]; then
+    return
+  fi
   log "Starting Stargate service"
   sudo systemctl start stargate.service
   SERVICE_STOPPED=0
@@ -140,6 +154,9 @@ copy_full_files() {
     3)
       cp -f "$SRC/web/alarm_clock.htm (Custom).txt" "$TARGET/web/alarm_clock.htm"
       cp -f "$SRC/web/img/background.png" "$TARGET/web/img/"
+      ;;
+    keep)
+      [ -f "$TARGET/web/alarm_clock.htm" ] || fail "Cannot preserve a missing alarm_clock.htm"
       ;;
   esac
 }
