@@ -5,7 +5,9 @@
 This repository includes maintenance contract v1. Updates can run without an
 automatic service restart. Uninstall is surgical: it restores/removes only
 Alarm Clock-owned files and removes its exact integration blocks, preserving
-other add-ons installed later.
+other add-ons installed later. It also removes the Alarm Clock button from all
+Original and Retro pages plus Stellar Archive's managed and full-restore
+navigation snapshots, so a later Archive update cannot bring the button back.
 
 [![Downloads](https://img.shields.io/github/downloads/matelv-x/Alarm-Clock/total?label=downloads)](https://github.com/matelv-x/Alarm-Clock/releases)
 

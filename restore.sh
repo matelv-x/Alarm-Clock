@@ -50,12 +50,16 @@ target = Path(os.environ["TARGET_ENV"])
 
 def edit(relative, transform):
     path = target / relative
+    edit_path(path, transform)
+
+def edit_path(path, transform):
     if not path.is_file():
         return
     original = path.read_text(encoding="utf-8", errors="replace")
     updated = transform(original)
     if updated != original:
         path.write_text(updated, encoding="utf-8")
+        print(f"Cleaned navigation: {path}")
 
 edit("classes/StargateMilkyWay/stargate.py", lambda text: text
      .replace("from alarm_clock_manager import AlarmClockManager\n", "")
@@ -101,18 +105,40 @@ def clean_server(text):
 edit("classes/web_server.py", clean_server)
 
 alarm_item = re.compile(
-    r'[ \t]*<li class="nav-item">\s*'
-    r'<a class="nav-link" href="alarm_clock\.htm">Alarm Clock</a>\s*'
-    r'</li>\s*', re.MULTILINE,
+    r'^[ \t]*<li\b[^>]*class=["\'][^"\']*\bnav-item\b[^"\']*["\'][^>]*>\s*'
+    r'<a\b(?=[^>]*href=["\']/?alarm_clock\.htm["\'])[^>]*>\s*Alarm Clock\s*</a>\s*'
+    r'</li>\s*', re.MULTILINE | re.IGNORECASE,
 )
-for page in (target / "web").glob("*.htm"):
-    if page.name != "alarm_clock.htm":
-        edit(str(page.relative_to(target)), lambda text: alarm_item.sub("", text))
+alarm_anchor = re.compile(
+    r'^[ \t]*<a\b(?=[^>]*href=["\']/?alarm_clock\.htm["\'])[^>]*>\s*Alarm Clock\s*</a>\s*\n?',
+    re.MULTILINE | re.IGNORECASE,
+)
 
-edit("web/retro/js/navigation.js", lambda text: re.sub(
-    r'^\s*<a href="/alarm_clock\.htm">Alarm Clock</a>\s*\n?', "", text,
-    flags=re.MULTILINE,
-))
+html_roots = (
+    target / "web",
+    target / "web/.stellar-archive-addon/managed/original-nav-pages",
+    target / "web/.stellar-archive-addon/originals/original-nav-pages",
+)
+html_pages = []
+for root in html_roots:
+    if root.is_dir():
+        html_pages.extend(root.glob("*.htm"))
+for path in (
+    target / "web/.stellar-archive-addon/managed/address_book.htm",
+    target / "web/.stellar-archive-addon/originals/address_book.htm",
+):
+    if path.is_file():
+        html_pages.append(path)
+for page in html_pages:
+    if page.name != "alarm_clock.htm":
+        edit_path(page, lambda text: alarm_item.sub("", text))
+
+for navigation in (
+    target / "web/retro/js/navigation.js",
+    target / "web/.stellar-archive-addon/managed/retro-navigation.js",
+    target / "web/.stellar-archive-addon/originals/retro-navigation.js",
+):
+    edit_path(navigation, lambda text: alarm_anchor.sub("", text))
 PY
 
 find "$TARGET/classes" -type d -name '__pycache__' -prune -exec rm -rf -- {} + 2>/dev/null || true
