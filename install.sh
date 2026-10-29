@@ -156,7 +156,12 @@ copy_full_files() {
       cp -f "$SRC/web/img/background.png" "$TARGET/web/img/"
       ;;
     keep)
-      [ -f "$TARGET/web/alarm_clock.htm" ] || fail "Cannot preserve a missing alarm_clock.htm"
+      if [ -f "$TARGET/web/alarm_clock.htm" ]; then
+        echo "Preserving existing alarm_clock.htm"
+      else
+        echo "No existing alarm_clock.htm; installing Kristian background"
+        cp -f "$SRC/web/alarm_clock.htm (Kristian-background).txt" "$TARGET/web/alarm_clock.htm"
+      fi
       ;;
   esac
 }
