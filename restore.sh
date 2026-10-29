@@ -14,11 +14,16 @@ if [[ -f "$STATE_FILE" ]]; then BACKUP="$(<"$STATE_FILE")"; fi
 if [[ -z "$BACKUP" || ! -d "$BACKUP" ]]; then
   BACKUP="$(ls -dt "${TARGET}"_backup_alarm_* 2>/dev/null | head -n 1 || true)"
 fi
-[[ -n "$BACKUP" && -d "$BACKUP" ]] || fail "No Alarm Clock pre-install backup found"
+if [[ -n "$BACKUP" && -d "$BACKUP" ]]; then
+  echo "Using Alarm Clock pre-install backup: $BACKUP"
+else
+  BACKUP=""
+  echo "No Alarm Clock pre-install backup found; removing only add-on-owned files and integration blocks."
+fi
 
 restore_owned_path() {
   local rel="$1" source="$BACKUP/$1" destination="$TARGET/$1"
-  if [[ -e "$source" ]]; then
+  if [[ -n "$BACKUP" && -e "$source" ]]; then
     rm -rf -- "$destination"
     mkdir -p -- "$(dirname -- "$destination")"
     cp -a -- "$source" "$destination"
