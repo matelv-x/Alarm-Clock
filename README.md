@@ -8,6 +8,9 @@ Alarm Clock-owned files and removes its exact integration blocks, preserving
 other add-ons installed later. It also removes the Alarm Clock button from all
 Original and Retro pages plus Stellar Archive's managed and full-restore
 navigation snapshots, so a later Archive update cannot bring the button back.
+Add-on-owned detection files are always removed even when the latest safety
+backup was created by an update and already contains Alarm Clock; shared
+`web/img/background.png` is still restored from the safety backup.
 
 [![Downloads](https://img.shields.io/github/downloads/matelv-x/Alarm-Clock/total?label=downloads)](https://github.com/matelv-x/Alarm-Clock/releases)
 

@@ -21,24 +21,32 @@ else
   echo "No Alarm Clock pre-install backup found; removing only add-on-owned files and integration blocks."
 fi
 
-restore_owned_path() {
+remove_owned_path() {
+  rm -rf -- "$TARGET/$1"
+}
+
+restore_shared_asset() {
   local rel="$1" source="$BACKUP/$1" destination="$TARGET/$1"
+  rm -rf -- "$destination"
   if [[ -n "$BACKUP" && -e "$source" ]]; then
-    rm -rf -- "$destination"
     mkdir -p -- "$(dirname -- "$destination")"
     cp -a -- "$source" "$destination"
-  else
-    rm -rf -- "$destination"
   fi
 }
 
-# Restore or remove only files owned by Alarm Clock.
-restore_owned_path classes/alarm_clock_manager.py
-restore_owned_path classes/alarm_clock_wormhole.py
-restore_owned_path web/js/alarm_clock.js
-restore_owned_path web/alarm_clock.htm
-restore_owned_path web/img/background.png
-restore_owned_path soundfx/alarm
+# Alarm Clock creates a new safety backup on every update.  Such a backup
+# already contains the add-on and must never be used to restore its detection
+# files during uninstall, otherwise Stellar Archive immediately sees the
+# add-on as installed again.  Remove add-on-owned files unconditionally.
+remove_owned_path classes/alarm_clock_manager.py
+remove_owned_path classes/alarm_clock_wormhole.py
+remove_owned_path web/js/alarm_clock.js
+remove_owned_path web/alarm_clock.htm
+remove_owned_path soundfx/alarm
+
+# background.png is a shared generic path, so retain the previous behaviour
+# for that one asset instead of deleting another add-on's or the owner's file.
+restore_shared_asset web/img/background.png
 
 # Remove only Alarm Clock additions from shared files. Later add-ons survive.
 TARGET_ENV="$TARGET" python3 <<'PY'
@@ -142,6 +150,7 @@ for navigation in (
 PY
 
 find "$TARGET/classes" -type d -name '__pycache__' -prune -exec rm -rf -- {} + 2>/dev/null || true
+rm -f -- "$STATE_FILE"
 if [[ "${STARGATE_ADDON_NO_RESTART:-0}" = "1" ]]; then
   echo "Alarm Clock removed surgically. Stargate restart deferred by add-on manager."
 else
