@@ -9,6 +9,7 @@ BACKUP="${TARGET}_backup_alarm_${STAMP}"
 WORK_DIR="$SCRIPT_DIR/.alarmclock_work"
 ZIP_SRC=""
 SRC=""
+CACHE_TOKEN=""
 SERVICE_STOPPED=0
 MODE="${ALARM_CLOCK_MODE:-}"
 log() { echo; echo "=== $1 ==="; }
@@ -166,9 +167,44 @@ copy_full_files() {
   esac
 }
 
+cache_bust_alarm_page() {
+  log "Versioning Alarm Clock browser assets"
+  CACHE_TOKEN="$(python3 - "$TARGET/web/js/alarm_clock.js" <<'PY'
+from pathlib import Path
+import hashlib
+import sys
+
+print(hashlib.sha256(Path(sys.argv[1]).read_bytes()).hexdigest()[:12])
+PY
+)"
+  [ -n "$CACHE_TOKEN" ] || fail "Could not calculate Alarm Clock cache token"
+
+  TARGET_ENV="$TARGET" CACHE_TOKEN_ENV="$CACHE_TOKEN" python3 <<'PY'
+from pathlib import Path
+import os
+import re
+import sys
+
+page = Path(os.environ["TARGET_ENV"]) / "web" / "alarm_clock.htm"
+token = os.environ["CACHE_TOKEN_ENV"]
+text = page.read_text(encoding="utf-8", errors="replace")
+updated, count = re.subn(
+    r'(<script\s+src=["\'])js/alarm_clock\.js(?:\?[^"\']*)?(["\']\s*>\s*</script>)',
+    rf'\1js/alarm_clock.js?v={token}\2',
+    text,
+    count=1,
+    flags=re.IGNORECASE,
+)
+if count != 1:
+    print("ERROR: Alarm Clock script tag was not found exactly once", file=sys.stderr)
+    sys.exit(1)
+page.write_text(updated, encoding="utf-8")
+PY
+}
+
 patch_files() {
   log "Patching files in correct places"
-  TARGET_ENV="$TARGET" MODE_ENV="$MODE" python3 <<'PY'
+  TARGET_ENV="$TARGET" MODE_ENV="$MODE" CACHE_TOKEN_ENV="$CACHE_TOKEN" python3 <<'PY'
 from pathlib import Path
 import os
 import sys
@@ -176,6 +212,9 @@ import re
 
 target = Path(os.environ["TARGET_ENV"])
 mode = os.environ["MODE_ENV"]
+cache_token = os.environ["CACHE_TOKEN_ENV"]
+alarm_href = f"alarm_clock.htm?v={cache_token}"
+retro_alarm_href = f"/alarm_clock.htm?v={cache_token}"
 
 def fail(msg: str):
     print(f"ERROR: {msg}", file=sys.stderr)
@@ -209,7 +248,10 @@ def insert_before(text: str, anchor: str, addition: str, unique_check: str) -> s
 def insert_alarm_li_before_help_html(path: Path):
     text = read(path)
 
-    if 'href="alarm_clock.htm"' in text or "href='alarm_clock.htm'" in text:
+    existing = re.compile(r'(<a\b[^>]*\bhref=)(["\'])alarm_clock\.htm(?:\?[^"\']*)?\2', re.I)
+    if existing.search(text):
+        text = existing.sub(lambda match: f'{match.group(1)}{match.group(2)}{alarm_href}{match.group(2)}', text)
+        write(path, text)
         return True
 
     help_patterns = [
@@ -224,7 +266,7 @@ def insert_alarm_li_before_help_html(path: Path):
 
             block = (
                 f'{indent_li}<li class="nav-item">\n'
-                f'{indent_a}<a class="nav-link" href="alarm_clock.htm">Alarm Clock</a>\n'
+                f'{indent_a}<a class="nav-link" href="{alarm_href}">Alarm Clock</a>\n'
                 f'{indent_li}</li>\n\n'
             )
             start = match.start()
@@ -257,6 +299,15 @@ def insert_line_menu(path: Path, line_to_insert: str, required: bool = False):
         fail(f"Could not find Help anchor in {path}")
     warn(f"Skipping file without Help anchor: {path}")
     return False
+
+def insert_retro_alarm_link(path: Path):
+    text = read(path)
+    existing = re.compile(r'(<a\b[^>]*\bhref=)(["\'])/alarm_clock\.htm(?:\?[^"\']*)?\2', re.I)
+    if existing.search(text):
+        text = existing.sub(lambda match: f'{match.group(1)}{match.group(2)}{retro_alarm_href}{match.group(2)}', text)
+        write(path, text)
+        return True
+    return insert_line_menu(path, f' <a href="{retro_alarm_href}">Alarm Clock</a>\n', required=False)
 
 # stargate.py
 stargate_py = target / "classes" / "StargateMilkyWay" / "stargate.py"
@@ -345,7 +396,7 @@ for htm in sorted((target / "web").glob("*.htm")):
 if mode in {"2", "3"}:
     nav_js = target / "web" / "retro" / "js" / "navigation.js"
     if nav_js.exists():
-        insert_line_menu(nav_js, ' <a href="/alarm_clock.htm">Alarm Clock</a>\n', required=False)
+        insert_retro_alarm_link(nav_js)
     else:
         warn(f"navigation.js not found, skipping: {nav_js}")
 PY
@@ -381,6 +432,7 @@ main() {
   stop_service
   prepare_folders
   copy_full_files
+  cache_bust_alarm_page
   patch_files
   sanity_checks
   start_service

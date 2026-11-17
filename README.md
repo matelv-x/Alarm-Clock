@@ -46,6 +46,9 @@ sudo systemctl restart stargate.service
 - Installer asks which background/UI mode to use.
 - Shows Raspberry Pi system time/timezone in the Alarm Clock UI.
 - Uses Raspberry Pi local system time for scheduled alarm triggers.
+- Versions the Alarm Clock page link and JavaScript URL from the installed
+  script checksum, preventing a browser from restoring an incompatible page or
+  script after installation or update.
 
 ## Timezone note
 

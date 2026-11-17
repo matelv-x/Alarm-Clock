@@ -11,7 +11,7 @@ mkdir -p "$TARGET/classes/StargateMilkyWay" "$TARGET/web/js" "$TARGET/web/retro/
 
 cat > "$TARGET/web/index.htm" <<'HTML'
 <li class="nav-item">
-  <a class="nav-link" href="alarm_clock.htm">Alarm Clock</a>
+  <a class="nav-link" href="alarm_clock.htm?v=ccd63391de1e">Alarm Clock</a>
 </li>
 <li class="nav-item"><a class="nav-link" href="help.htm">Help</a></li>
 HTML
@@ -20,7 +20,7 @@ cp "$TARGET/web/index.htm" "$TARGET/web/.stellar-archive-addon/originals/origina
 cp "$TARGET/web/index.htm" "$TARGET/web/.stellar-archive-addon/originals/address_book.htm"
 
 cat > "$TARGET/web/retro/js/navigation.js" <<'JS'
-<a href="/alarm_clock.htm">Alarm Clock</a>
+<a href="/alarm_clock.htm?v=ccd63391de1e">Alarm Clock</a>
 <a href="/help.htm">Help</a>
 JS
 cp "$TARGET/web/retro/js/navigation.js" "$TARGET/web/.stellar-archive-addon/managed/retro-navigation.js"

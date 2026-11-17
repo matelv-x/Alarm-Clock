@@ -114,11 +114,11 @@ edit("classes/web_server.py", clean_server)
 
 alarm_item = re.compile(
     r'^[ \t]*<li\b[^>]*class=["\'][^"\']*\bnav-item\b[^"\']*["\'][^>]*>\s*'
-    r'<a\b(?=[^>]*href=["\']/?alarm_clock\.htm["\'])[^>]*>\s*Alarm Clock\s*</a>\s*'
+    r'<a\b(?=[^>]*href=["\']/?alarm_clock\.htm(?:\?[^"\']*)?["\'])[^>]*>\s*Alarm Clock\s*</a>\s*'
     r'</li>\s*', re.MULTILINE | re.IGNORECASE,
 )
 alarm_anchor = re.compile(
-    r'^[ \t]*<a\b(?=[^>]*href=["\']/?alarm_clock\.htm["\'])[^>]*>\s*Alarm Clock\s*</a>\s*\n?',
+    r'^[ \t]*<a\b(?=[^>]*href=["\']/?alarm_clock\.htm(?:\?[^"\']*)?["\'])[^>]*>\s*Alarm Clock\s*</a>\s*\n?',
     re.MULTILINE | re.IGNORECASE,
 )
 
