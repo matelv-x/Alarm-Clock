@@ -112,12 +112,22 @@ backup_target() {
     return
   fi
 
+  local backup_source="$TARGET"
+  local legacy_backups=()
+  shopt -s nullglob
+  legacy_backups=("${TARGET}"_backup_alarm_*)
+  shopt -u nullglob
+  if (( ${#legacy_backups[@]} > 0 )) && [[ -d "${legacy_backups[0]}" ]]; then
+    backup_source="${legacy_backups[0]}"
+    echo "Migrating oldest legacy pre-install backup: $backup_source"
+  fi
+
   rm -rf "$STATE_TMP"
   mkdir -p "$STATE_TMP/backup"
   printf 'schema=1\n' > "$STATE_TMP/backup-manifest"
 
   backup_path() {
-    local rel="$1" source="$TARGET/$1" destination="$STATE_TMP/backup/$1"
+    local rel="$1" source="$backup_source/$1" destination="$STATE_TMP/backup/$1"
     if [[ -e "$source" || -L "$source" ]]; then
       mkdir -p -- "$(dirname -- "$destination")"
       cp -a -- "$source" "$destination"

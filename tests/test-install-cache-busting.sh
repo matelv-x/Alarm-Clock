@@ -55,14 +55,21 @@ cat > "$TARGET/web/retro/js/navigation.js" <<'JS'
 <a href="/help.htm">Help</a>
 JS
 
+LEGACY_BACKUP="${TARGET}_backup_alarm_20260101_000000"
+cp -a "$TARGET" "$LEGACY_BACKUP"
+printf 'legacy installed Alarm Clock background\n' > "$TARGET/web/img/background.png"
+legacy_backup_count_before="$(find "$(dirname "$TARGET")" -maxdepth 1 -type d -name "$(basename "$TARGET")_backup_alarm_*" | wc -l | tr -d ' ')"
+
 APP_DIR="$TARGET" ALARM_CLOCK_MODE=3 STARGATE_ADDON_NO_RESTART=1 \
   "$ROOT/install.sh" >/dev/null
 
 [[ -f "$TARGET/.alarm-clock-addon/backup-manifest" ]]
 [[ -f "$TARGET/.alarm-clock-addon/backup/web/img/background.png" ]]
+grep -q '^owner background before Alarm Clock$' "$TARGET/.alarm-clock-addon/backup/web/img/background.png"
 [[ ! -e "$TARGET/.alarm-clock-addon/backup/owner-data" ]]
-if compgen -G "${TARGET}_backup_alarm_*" >/dev/null; then
-  printf 'installer created a legacy full-tree backup\n' >&2
+legacy_backup_count_after="$(find "$(dirname "$TARGET")" -maxdepth 1 -type d -name "$(basename "$TARGET")_backup_alarm_*" | wc -l | tr -d ' ')"
+if [[ "$legacy_backup_count_after" != "$legacy_backup_count_before" ]]; then
+  printf 'installer created another legacy full-tree backup\n' >&2
   exit 1
 fi
 backup_manifest_hash="$(shasum -a 256 "$TARGET/.alarm-clock-addon/backup-manifest" | awk '{print $1}')"
