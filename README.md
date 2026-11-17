@@ -12,6 +12,11 @@ Add-on-owned detection files are always removed even when the latest safety
 backup was created by an update and already contains Alarm Clock; shared
 `web/img/background.png` is still restored from the safety backup.
 
+The installer stores one compact pre-install snapshot in
+`/home/pi/sg1_v4/.alarm-clock-addon`. It includes only shared files that Alarm
+Clock may edit and never copies the complete SG1_v4 tree. Later updates retain
+that original snapshot instead of creating another multi-gigabyte backup.
+
 [![Downloads](https://img.shields.io/github/downloads/matelv-x/Alarm-Clock/total?label=downloads)](https://github.com/matelv-x/Alarm-Clock/releases)
 
 Installable Alarm Clock add-on for StargateProject SG1 v4.

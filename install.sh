@@ -3,9 +3,10 @@ set -euo pipefail
 
 TARGET="${APP_DIR:-/home/pi/sg1_v4}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATE_FILE="$SCRIPT_DIR/.last_backup_path"
-STAMP="$(date +%Y%m%d_%H%M%S)"
-BACKUP="${TARGET}_backup_alarm_${STAMP}"
+STATE_DIR="$TARGET/.alarm-clock-addon"
+STATE_FILE="$STATE_DIR/backup-manifest"
+BACKUP="$STATE_DIR/backup"
+STATE_TMP="$TARGET/.alarm-clock-addon.tmp.$$"
 WORK_DIR="$SCRIPT_DIR/.alarmclock_work"
 ZIP_SRC=""
 SRC=""
@@ -64,6 +65,7 @@ require_target() {
 
 cleanup_work() {
   rm -rf "$WORK_DIR"
+  rm -rf "$STATE_TMP"
   if [ "$SERVICE_STOPPED" = "1" ]; then
     sudo systemctl start stargate.service >/dev/null 2>&1 || true
   fi
@@ -104,10 +106,41 @@ choose_mode() {
 }
 
 backup_target() {
-  log "Creating backup"
-  cp -a "$TARGET" "$BACKUP"
-  echo "$BACKUP" > "$STATE_FILE"
-  echo "Backup created: $BACKUP"
+  log "Creating surgical backup"
+  if [[ -f "$STATE_FILE" && -d "$BACKUP" ]]; then
+    echo "Preserving existing pre-install backup: $BACKUP"
+    return
+  fi
+
+  rm -rf "$STATE_TMP"
+  mkdir -p "$STATE_TMP/backup"
+  printf 'schema=1\n' > "$STATE_TMP/backup-manifest"
+
+  backup_path() {
+    local rel="$1" source="$TARGET/$1" destination="$STATE_TMP/backup/$1"
+    if [[ -e "$source" || -L "$source" ]]; then
+      mkdir -p -- "$(dirname -- "$destination")"
+      cp -a -- "$source" "$destination"
+      printf 'present\t%s\n' "$rel" >> "$STATE_TMP/backup-manifest"
+    else
+      printf 'absent\t%s\n' "$rel" >> "$STATE_TMP/backup-manifest"
+    fi
+  }
+
+  backup_path classes/StargateMilkyWay/stargate.py
+  backup_path classes/keyboard_manager.py
+  backup_path classes/web_server.py
+  backup_path web/retro/js/navigation.js
+  backup_path web/img/background.png
+  for page in "$TARGET"/web/*.htm; do
+    [[ -e "$page" ]] || continue
+    [[ "$(basename -- "$page")" == "alarm_clock.htm" ]] && continue
+    backup_path "web/$(basename -- "$page")"
+  done
+
+  rm -rf "$STATE_DIR"
+  mv "$STATE_TMP" "$STATE_DIR"
+  echo "Surgical backup created: $BACKUP"
 }
 
 stop_service() {

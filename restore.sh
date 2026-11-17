@@ -3,14 +3,20 @@ set -euo pipefail
 
 TARGET="${APP_DIR:-/home/pi/sg1_v4}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATE_FILE="$SCRIPT_DIR/.last_backup_path"
+STATE_DIR="$TARGET/.alarm-clock-addon"
+STATE_FILE="$STATE_DIR/backup-manifest"
+LEGACY_STATE_FILE="$SCRIPT_DIR/.last_backup_path"
 fail() { echo "ERROR: $1" >&2; exit 1; }
 
 [[ -d "$TARGET/classes" && -d "$TARGET/web" ]] || fail "Invalid SG1_v4 target: $TARGET"
 [[ -w "$TARGET" ]] || fail "Target is not writable; run this restore with sudo"
 
 BACKUP=""
-if [[ -f "$STATE_FILE" ]]; then BACKUP="$(<"$STATE_FILE")"; fi
+if [[ -f "$STATE_FILE" && -d "$STATE_DIR/backup" ]]; then
+  BACKUP="$STATE_DIR/backup"
+elif [[ -f "$LEGACY_STATE_FILE" ]]; then
+  BACKUP="$(<"$LEGACY_STATE_FILE")"
+fi
 if [[ -z "$BACKUP" || ! -d "$BACKUP" ]]; then
   BACKUP="$(ls -dt "${TARGET}"_backup_alarm_* 2>/dev/null | head -n 1 || true)"
 fi
@@ -150,7 +156,8 @@ for navigation in (
 PY
 
 find "$TARGET/classes" -type d -name '__pycache__' -prune -exec rm -rf -- {} + 2>/dev/null || true
-rm -f -- "$STATE_FILE"
+rm -rf -- "$STATE_DIR"
+rm -f -- "$LEGACY_STATE_FILE"
 if [[ "${STARGATE_ADDON_NO_RESTART:-0}" = "1" ]]; then
   echo "Alarm Clock removed surgically. Stargate restart deferred by add-on manager."
 else
